@@ -1,0 +1,45 @@
+import sqlite3
+
+def create_connection(db_file):
+    return sqlite3.connect(db_file)
+
+def create_table(conn):
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            password TEXT NOT NULL
+        )
+    ''')
+    conn.commit()
+
+def insert_user(conn, username, password):
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO users (username, password) VALUES (?, ?)
+    ''', (username, password))
+    conn.commit()
+
+def get_user_by_username(conn, username):
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT * FROM users WHERE username = ?
+    ''', (username,))
+    return cursor.fetchone()
+
+def main():
+    database = 'example.db'
+    conn = create_connection(database)
+    create_table(conn)
+    insert_user(conn, 'alice', 'password123')
+    insert_user(conn, 'bob', 'password456')
+    user = get_user_by_username(conn, 'alice')
+    if user:
+        print(f"User found: ID={user[0]}, Username={user[1]}")
+    else:
+        print("User not found")
+    conn.close()
+
+if __name__ == '__main__':
+    main()
